@@ -1,0 +1,8 @@
+Capture/
+model/weights/
+account.txt
+misc.ipynb
+sendEmail.py
+test.py
+__pycache__/
+.vscode/
