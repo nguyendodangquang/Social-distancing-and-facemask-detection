@@ -5,8 +5,12 @@ import cv2
 import os, glob, time
 from math import pow, sqrt
 from datetime import datetime
+from addCSV import append_list_as_row
 
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
+device_name = 'C001'
+result_csv = './Capture/result.csv'
+
 
 # Load model to detect person
 WEIGHT = './model/person_detect/yolov4_tiny_person.cfg'
@@ -232,7 +236,7 @@ if page == 'Run Detection':
 
                         # Write a message
                         msg="**Social Distancing and Face Mask System Alert** \n\n"
-                        msg+="Camera ID: C001 \n\n"
+                        msg+=f"Camera ID: {device_name}" + "\n\n"
                         msg+="Status: Danger! \n\n"
                         msg+="No_Mask Count: "+str(nomask_count)+" \n"
                         msg+="Mask Count: "+str(mask_count)+" \n"
@@ -249,6 +253,8 @@ if page == 'Run Detection':
                             sendEmail(msg, f'./Capture/{image_name}.jpg')
                         count_frame=0
                         cur = time.time()
+                        save_list = [device_name, datetime_ist.strftime("%Y-%m-%d"), datetime_ist.strftime("%H:%M:%S"), mask_count, nomask_count, len(close_objects)]
+                        append_list_as_row(result_csv, save_list)
             else:
                 text = "Warning !"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0,255,255), 2)

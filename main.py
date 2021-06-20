@@ -3,6 +3,7 @@ import argparse, pytz, time
 import cv2
 from math import pow, sqrt
 from datetime import datetime
+from addCSV import append_list_as_row
 
 # Parse the arguments from command line
 arg = argparse.ArgumentParser(description='Social distance and Face mask detection')
@@ -19,6 +20,9 @@ if args["use_email"]:
     from sendEmailWithImage import sendEmail
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
 
+device_name = 'C001'
+result_csv = './Capture/result.csv'
+
 # Load model to detect person
 WEIGHT = './model/person_detect/yolov4_tiny_person.cfg'
 MODEL = './model/person_detect/yolov4_tiny_person_best.weights'
@@ -32,7 +36,7 @@ labels = [line.strip() for line in open(labels_list)]
 
 # Load model to detect Mask/Improperly/No mask
 modelConfiguration = "./model/mask_detect/yolov4_mask_2class.cfg"
-modelWeights = "./model/weights/yolov4_mask_2class_best.weights"
+modelWeights = "./model/weights/yolov4_mask_2class_fn_best.weights"
 
 net_face = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net_face.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
@@ -44,7 +48,7 @@ with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
 # Set color for Mask/Improperly/No mask
-colors = [(0,0,255), (0,255,0)] #, (0,135,215)
+colors = [(0,0,255), (0,255,0)]
 
 # Image size
 IMG_WIDTH, IMG_HEIGHT = 416, 416
@@ -205,7 +209,7 @@ def run_detect_file():
         if (nomask_count == 0) and len(close_objects) == 0:
             text = "Safe"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
-        elif (nomask_count >=3) or len(close_objects) >= 3:
+        elif (nomask_count >=1) or len(close_objects) >= 3:
             text = "Danger !!!"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
@@ -220,7 +224,7 @@ def run_detect_file():
 
                     # Write a message
                     msg="**Social Distancing and Face Mask System Alert** \n\n"
-                    msg+="Camera ID: C001 \n\n"
+                    msg+=f"Camera ID: {device_name}" + "\n\n"
                     msg+="Status: Danger! \n\n"
                     msg+="No_Mask Count: "+str(nomask_count)+" \n"
                     msg+="Mask Count: "+str(mask_count)+" \n"
@@ -229,11 +233,13 @@ def run_detect_file():
                     print(msg)
                     if args["use_sms"]:
                         sendSMS(msg)
-                    # Send email   
+                    # Send email
                     if args["use_email"]:
                         sendEmail(msg, f'./Capture/{image_name}.jpg')
                     cur = time.time()
                     count_frame=0
+                    save_list = [device_name, datetime_ist.strftime("%Y-%m-%d"), datetime_ist.strftime("%H:%M:%S"), mask_count, nomask_count, len(close_objects)]
+                    append_list_as_row(result_csv, save_list)
         else:
             text = "Warning !"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0,255,255), 2)
