@@ -7,8 +7,9 @@ import cv2
 import os, glob, time
 from math import pow, sqrt
 from datetime import datetime
-from addCSV import append_list_as_row
-from showResult import search_history
+from workWithCSV import append_list_as_row
+from workWithCSV import search_history
+from sendMSG import writeMsg
 
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
 device_name = 'C001'
@@ -46,8 +47,8 @@ IMG_WIDTH, IMG_HEIGHT = 416, 416
 
 # Focal length F = (P x D) / H (my Height (H) = 172, distance I stand between camera (D) = 360cm, Height of my Bounding Box (P) = 300 px)
 F = 625
-count_frame = 0
 cur = 0
+count_frame = 0
 
 st.sidebar.title('Select page')
 page = st.sidebar.selectbox('Select page',['Run Detection','Captured Images', 'History'])
@@ -69,9 +70,9 @@ if page == 'Run Detection':
     frequency = st.sidebar.slider('In Second', min_value=10, max_value=100, step=5)
 
     if use_email:
-        from sendEmailWithImage import sendEmail
+        from sendMSG import sendEmail
     if use_sms:
-        from sendSMS import sendSMS
+        from sendMSG import sendSMS
 
     st.title("Webcam Live Feed")
     run = st.checkbox('Open camera')
@@ -223,7 +224,8 @@ if page == 'Run Detection':
             if (nomask_count == 0) and len(close_objects) == 0:
                 text = "Safe"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
-            elif (nomask_count >=nomask) or len(close_objects) >=close:
+                count_frame = 0
+            elif (nomask_count >=nomask):
                 text = "Danger !!!"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
@@ -237,19 +239,37 @@ if page == 'Run Detection':
                         cv2.imwrite(f'./Capture/{image_name}.jpg', frame)
 
                         # Write a message
-                        msg="**Social Distancing and Face Mask System Alert** \n\n"
-                        msg+=f"Camera ID: {device_name}" + "\n\n"
-                        msg+="Status: Danger! \n\n"
-                        msg+="No_Mask Count: "+str(nomask_count)+" \n"
-                        msg+="Mask Count: "+str(mask_count)+" \n"
-                        msg+=f"Social Distancing Violations: {len(close_objects)}"+" \n"
-                        msg+="Date-Time of alert: \n"+datetime_ist.strftime('%Y-%m-%d %H:%M:%S %Z')
+                        msg = writeMsg(device_name, nomask_count, mask_count, close_objects, datetime_ist)
                         print(msg)
-
                         # Send SMS
                         if use_sms:
                             sendSMS(msg)
+                        # Send email   
+                        if use_email:
+                            sendEmail(msg, f'./Capture/{image_name}.jpg')
+                        count_frame=0
+                        cur = time.time()
+                        save_list = [device_name, datetime_ist.strftime("%Y-%m-%d"), datetime_ist.strftime("%H:%M:%S"), mask_count, nomask_count, len(close_objects)]
+                        append_list_as_row(result_csv, save_list)
+            elif len(close_objects) >=close:
+                text = "Danger !!!"
+                cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
+                count_frame+=1
+                if count_frame >=30:
+                    # Capture image next image after few seconds:
+                    if time.time() - cur >= frequency:
+                        # Save image
+                        datetime_ist = datetime.now(IST)
+                        image_name = str(datetime_ist.strftime("%Y-%m-%d_%H-%M-%S")) + f'_{device_name}'
+                        cv2.imwrite(f'./Capture/{image_name}.jpg', frame)
+
+                        # Write a message
+                        msg = writeMsg(device_name, nomask_count, mask_count, close_objects, datetime_ist)
+                        print(msg)
+                        # Send SMS
+                        if use_sms:
+                            sendSMS(msg)
                         # Send email   
                         if use_email:
                             sendEmail(msg, f'./Capture/{image_name}.jpg')
@@ -260,6 +280,7 @@ if page == 'Run Detection':
             else:
                 text = "Warning !"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0,255,255), 2)
+                count_frame = 0
             cv2.namedWindow('Frame',cv2.WINDOW_NORMAL)
             # Show frame
             # cv2.imshow('Frame', result)

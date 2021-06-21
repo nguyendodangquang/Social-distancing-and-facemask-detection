@@ -6,3 +6,6 @@ sendEmail.py
 test.py
 __pycache__/
 .vscode/
+sendEmailWithImage.py
+sendSMS.py
+addCSV.py
