@@ -36,7 +36,7 @@ labels = [line.strip() for line in open(labels_list)]
 
 # Load model to detect Mask/Improperly/No mask
 modelConfiguration = "./model/mask_detect/yolov4_mask_2class.cfg"
-modelWeights = "./model/weights/yolov4_mask_2class_fn_best.weights"
+modelWeights = "./model/weights/yolov4_mask_2class_fn.weights"
 
 net_face = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net_face.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)

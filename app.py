@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
 import pytz
 import cv2
@@ -10,7 +11,6 @@ from addCSV import append_list_as_row
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
 device_name = 'C001'
 result_csv = './Capture/result.csv'
-
 
 # Load model to detect person
 WEIGHT = './model/person_detect/yolov4_tiny_person.cfg'
@@ -48,7 +48,7 @@ count_frame = 0
 cur = 0
 
 st.sidebar.title('Select page')
-page = st.sidebar.selectbox('Select page',['Run Detection','Captured Images', 'Table'])
+page = st.sidebar.selectbox('Select page',['Run Detection','Captured Images', 'History'])
 if page == 'Run Detection':
 
     st.sidebar.title('Confidence')
@@ -301,3 +301,7 @@ if page == 'Captured Images':
     for image_index, captured in enumerate(show_image):
         with rows[image_index // n_cols]:
             cols_per_row[image_index // n_cols][image_index % n_cols].image(captured)
+
+if page == 'History':
+    st.header('History')
+    st.dataframe(pd.read_csv(result_csv))
