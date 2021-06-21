@@ -1,12 +1,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import datetime as dt
 import pytz
 import cv2
 import os, glob, time
 from math import pow, sqrt
 from datetime import datetime
 from addCSV import append_list_as_row
+from showResult import search_history
 
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
 device_name = 'C001'
@@ -57,7 +59,7 @@ if page == 'Run Detection':
 
     st.sidebar.title('Configuration')
     nomask = st.sidebar.slider('No mask', min_value=1, max_value=10)
-    close = st.sidebar.slider('Number of close people', min_value=1, max_value=10)
+    close = st.sidebar.slider('Number of close people', min_value=2, max_value=20)
 
     st.sidebar.title('Alert')
     use_email = st.sidebar.checkbox('Alert to email')
@@ -75,7 +77,7 @@ if page == 'Run Detection':
     run = st.checkbox('Open camera')
     FRAME_WINDOW = st.image([])
     if run:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -231,7 +233,7 @@ if page == 'Run Detection':
                     if time.time() - cur >= frequency:
                         # Save image
                         datetime_ist = datetime.now(IST)
-                        image_name = datetime_ist.strftime("%Y-%m-%d_%H-%M-%S")
+                        image_name = str(datetime_ist.strftime("%Y-%m-%d_%H-%M-%S")) + f'_{device_name}'
                         cv2.imwrite(f'./Capture/{image_name}.jpg', frame)
 
                         # Write a message
@@ -280,6 +282,7 @@ if page == 'Run Detection':
 if page == 'Captured Images':
     # Search Image base on input date and time.
     st.sidebar.title('Search Image')
+    cameraID_img = st.sidebar.selectbox('Camera ID', ['All', 'C001', 'C002'])
     from_date= int(''.join(str(st.sidebar.date_input('From:')).split('-')) + ''.join(str(st.sidebar.time_input('')).split(':'))[:6])
     to_date = int(''.join(str(st.sidebar.date_input('To:')).split('-')) + ''.join(str(st.sidebar.time_input(' ')).split(':'))[:6])
 
@@ -289,9 +292,14 @@ if page == 'Captured Images':
 
     # Show all image between giving date and time.
     for img in captured_image:
-        img_date = int(''.join(os.path.basename(img)[:-13].split('-')) + ''.join(os.path.basename(img).split('-'))[9:15])
-        if img_date >= from_date and img_date <= to_date:
-            show_image.append(img)
+        img_date = int(''.join(os.path.basename(img)[:10].split('-')) + ''.join(os.path.basename(img)[11:19].split('-')))
+        captured_by = os.path.basename(img)[20:24]
+        if cameraID_img != 'All':
+            if img_date >= from_date and img_date <= to_date and captured_by == cameraID_img:
+                show_image.append(img)
+        else:
+            if img_date >= from_date and img_date <= to_date:
+                show_image.append(img)
 
     n_cols = 4
     n_rows = 1 + len(show_image) // n_cols
@@ -304,4 +312,9 @@ if page == 'Captured Images':
 
 if page == 'History':
     st.header('History')
-    st.dataframe(pd.read_csv(result_csv))
+    st.sidebar.header('Search')
+    choose_ID = st.sidebar.selectbox('Camera ID', ['All', 'C001', 'C002'])
+    from_history = dt.datetime.combine(st.sidebar.date_input('From:'), st.sidebar.time_input(''))
+    to_history = dt.datetime.combine(st.sidebar.date_input('To:'), st.sidebar.time_input(' '))
+    st.dataframe(search_history(from_history, to_history, choose_ID))
+    st.bar_chart(search_history(from_history, to_history, choose_ID)[['Date', 'No_mask_count', 'Social_distancing_violations']].set_index('Date'))

@@ -63,7 +63,7 @@ def run_detect_file():
     if args['video']:
         cap = cv2.VideoCapture(args['video'])
     else:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -209,7 +209,7 @@ def run_detect_file():
         if (nomask_count == 0) and len(close_objects) == 0:
             text = "Safe"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
-        elif (nomask_count >=1) or len(close_objects) >= 3:
+        elif (nomask_count >=2) or len(close_objects) >= 3:
             text = "Danger !!!"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
@@ -219,7 +219,7 @@ def run_detect_file():
                 if time.time() - cur >= 10:
                     # Save image
                     datetime_ist = datetime.now(IST)
-                    image_name = datetime_ist.strftime("%Y-%m-%d_%H-%M-%S")
+                    image_name = str(datetime_ist.strftime("%Y-%m-%d_%H-%M-%S")) + f'_{device_name}'
                     cv2.imwrite(f'./Capture/{image_name}.jpg', frame)
 
                     # Write a message
