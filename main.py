@@ -4,15 +4,15 @@ import cv2
 from sendMSG import writeMsg
 from math import pow, sqrt
 from datetime import datetime
-from addCSV import append_list_as_row
+from workWithCSV import append_list_as_row
 
 # Parse the arguments from command line
 arg = argparse.ArgumentParser(description='Social distance and Face mask detection')
 
 arg.add_argument('-v', '--video', default='', type = str, help = 'Video file path. If no path is given, video is captured using device.')
 arg.add_argument('-c', '--confidence', type = float, default = 0.4, help = 'Set confidence for detecting a person and face')
-arg.add_argument("-s", "--use_sms", type=bool, default=1, help="SMS need to be send or not")
-arg.add_argument("-e", "--use_email", type=bool, default=1, help="Email need to be send or not")
+arg.add_argument("-s", "--use_sms", type=bool, default=0, help="SMS need to be send or not")
+arg.add_argument("-e", "--use_email", type=bool, default=0, help="Email need to be send or not")
 args = vars(arg.parse_args())
 
 if args["use_sms"]:
@@ -210,7 +210,8 @@ def run_detect_file():
         if (nomask_count == 0) and len(close_objects) == 0:
             text = "Safe"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
-        elif (nomask_count >=3):
+            count_frame = 0
+        elif nomask_count >=1:
             text = "Danger !!!"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
@@ -235,12 +236,12 @@ def run_detect_file():
                     save_list = [device_name, datetime_ist.strftime("%Y-%m-%d"), datetime_ist.strftime("%H:%M:%S"), mask_count, nomask_count, len(close_objects)]
                     append_list_as_row(result_csv, save_list)
         
-        elif len(close_objects) >= 2:
+        elif len(close_objects) >= 3:
             text = "Danger !!!"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
             count_frame+=1
-            if count_frame >=50:
+            if count_frame >=30:
                 # Capture image next image after few seconds:
                 if time.time() - cur >= 20:
                     # Save image
@@ -262,6 +263,7 @@ def run_detect_file():
         else:
             text = "Warning !"
             cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0,255,255), 2)
+            count_frame = 0
         cv2.namedWindow('Frame',cv2.WINDOW_NORMAL)
         # Show frame
         cv2.imshow('Frame', result)

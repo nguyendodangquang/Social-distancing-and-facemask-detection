@@ -7,8 +7,7 @@ import cv2
 import os, glob, time
 from math import pow, sqrt
 from datetime import datetime
-from workWithCSV import append_list_as_row
-from workWithCSV import search_history
+from workWithCSV import append_list_as_row, search_history
 from sendMSG import writeMsg
 
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
@@ -225,7 +224,7 @@ if page == 'Run Detection':
                 text = "Safe"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
                 count_frame = 0
-            elif (nomask_count >=nomask):
+            elif nomask_count >=nomask:
                 text = "Danger !!!"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
 
