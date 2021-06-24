@@ -25,3 +25,9 @@ def search_history(from_time, to_time, ID):
         return new_df
     elif ID != 'All':
         return new_df[new_df['Camera_ID'] == ID]
+
+def groupby_hour(df):
+    def time(row):
+        return str(row['Time'])[:2]
+    df['hour'] = df.apply(time, axis=1)
+    return df.groupby('hour').sum()[['No_mask_count', 'Social_distancing_violations']]

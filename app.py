@@ -7,7 +7,7 @@ import cv2
 import os, glob, time
 from math import pow, sqrt
 from datetime import datetime
-from workWithCSV import append_list_as_row, search_history
+from workWithCSV import append_list_as_row, search_history, groupby_hour
 from sendMSG import writeMsg
 
 IST = pytz.timezone('Asia/Ho_Chi_Minh')
@@ -27,7 +27,7 @@ labels = [line.strip() for line in open(labels_list)]
 
 # Load model to detect Mask/Improperly/No mask
 modelConfiguration = "./model/mask_detect/yolov4_mask_2class.cfg"
-modelWeights = "./model/weights/yolov4_mask_2class_best.weights"
+modelWeights = "./model/weights/yolov4_mask_2class_final.weights"
 
 net_face = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net_face.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
@@ -53,19 +53,19 @@ st.sidebar.title('Select page')
 page = st.sidebar.selectbox('Select page',['Run Detection','Captured Images', 'History'])
 if page == 'Run Detection':
 
-    st.sidebar.title('Confidence')
-    pers = st.sidebar.slider('Person', min_value=0.1, max_value=1.0, step=0.1)
-    msk = st.sidebar.slider('Mask/No Mask', min_value=0.1, max_value=1.0, step=0.1)
+    # st.sidebar.title('Confidence')
+    # pers = st.sidebar.slider('Person', min_value=0.1, max_value=1.0, step=0.1)
+    # msk = st.sidebar.slider('Mask/No Mask', min_value=0.1, max_value=1.0, step=0.1)
 
-    st.sidebar.title('Configuration')
+    st.sidebar.title('Danger thresholds')
     nomask = st.sidebar.slider('No mask', min_value=1, max_value=10)
     close = st.sidebar.slider('Number of close people', min_value=2, max_value=20)
 
     st.sidebar.title('Alert')
-    use_email = st.sidebar.checkbox('Alert to email')
-    use_sms = st.sidebar.checkbox('Alert to SMS')
+    use_email = st.sidebar.checkbox('Alert via email')
+    use_sms = st.sidebar.checkbox('Alert via SMS')
 
-    st.sidebar.title('Frequency')
+    st.sidebar.title('Alert Frequency')
     frequency = st.sidebar.slider('In Second', min_value=10, max_value=100, step=5)
 
     if use_email:
@@ -100,7 +100,7 @@ if page == 'Run Detection':
                     scores_person = detection_person[5:]
                     classID_person = np.argmax(scores_person)
                     confidence_person = scores_person[classID_person]
-                    if confidence_person >= pers:
+                    if confidence_person >= 0.5:
                         if classID_person == 0:
                             x2, y2, w2, h2 = detection_person[:4] * np.array([frame_width, frame_height, frame_width, frame_height])
                             p1 = int(x2 - w2//2), int(y2 - h2//2)
@@ -134,7 +134,7 @@ if page == 'Run Detection':
                 for j in pos_dict.keys():
                     if i < j:
                         dist = sqrt(pow(pos_dict[i][0]-pos_dict[j][0],2) + pow(pos_dict[i][1]-pos_dict[j][1],2) + pow(pos_dict[i][2]-pos_dict[j][2],2))
-                    # Check if distance less than 2 metres or 200 centimetres
+                        # Check if distance less than 200 centimetres
                         if dist < 200:
                             close_objects.add(i)
                             close_objects.add(j)
@@ -179,10 +179,8 @@ if page == 'Run Detection':
                     # Get label index
                     classID = np.argmax(scores)
                     confidence_face = scores[classID]
-                    # One out has multiple predictions for multiple captured objects.
-                    # for detection in out:
                     # Extract position data of face area (only area with high confidence)
-                    if confidence_face >= msk:
+                    if confidence_face >= 0.5:
                         x, y, w, h = detection[:4] * np.array([frame_width, frame_height, frame_width, frame_height])
                         p0 = int(x - w//2), int(y - h//2)
                         boxes.append([*p0, int(w), int(h)])
@@ -217,16 +215,19 @@ if page == 'Run Detection':
             text = f"Social Distancing Violations: {len(close_objects)}"
             cv2.putText(result, text, (5, int(border_size-30)), style, 0.65, border_text_color, 2)
 
+            text = f"Camera ID: {device_name}"
+            cv2.putText(result, text, (frame_width - 250, int(border_size-70)), style, 0.65, border_text_color, 2)
+
             text = f"Status:"
-            cv2.putText(result, text, (frame_width - 250, int(border_size-50)), style, 0.65, border_text_color, 2)
+            cv2.putText(result, text, (frame_width - 250, int(border_size-30)), style, 0.65, border_text_color, 2)
             
             if (nomask_count == 0) and len(close_objects) == 0:
                 text = "Safe"
-                cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
+                cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 255, 0), 2)
                 count_frame = 0
             elif nomask_count >=nomask:
                 text = "Danger !!!"
-                cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
+                cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 0, 255), 2)
 
                 count_frame+=1
                 if count_frame >=7:
@@ -252,7 +253,7 @@ if page == 'Run Detection':
                         append_list_as_row(result_csv, save_list)
             elif len(close_objects) >=close:
                 text = "Danger !!!"
-                cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
+                cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 0, 255), 2)
 
                 count_frame+=1
                 if count_frame >=30:
@@ -278,13 +279,10 @@ if page == 'Run Detection':
                         append_list_as_row(result_csv, save_list)
             else:
                 text = "Warning !"
-                cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0,255,255), 2)
+                cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0,255,255), 2)
                 count_frame = 0
             cv2.namedWindow('Frame',cv2.WINDOW_NORMAL)
-            # Show frame
-            # cv2.imshow('Frame', result)
 
-            # 2 line below is for running on streamlit
             result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB) 
             FRAME_WINDOW.image(result, use_column_width='always')
 
@@ -337,4 +335,16 @@ if page == 'History':
     from_history = dt.datetime.combine(st.sidebar.date_input('From:'), st.sidebar.time_input(''))
     to_history = dt.datetime.combine(st.sidebar.date_input('To:'), st.sidebar.time_input(' '))
     st.dataframe(search_history(from_history, to_history, choose_ID))
-    st.bar_chart(search_history(from_history, to_history, choose_ID)[['Date', 'No_mask_count', 'Social_distancing_violations']].set_index('Date'))
+    chart = st.selectbox('Select chart',['Bar chart','Line chart'])
+    if chart == 'Bar chart':
+        st.bar_chart(search_history(from_history, to_history, choose_ID).groupby('Date').sum()[['No_mask_count', 'Social_distancing_violations']])
+        try:
+            st.bar_chart(groupby_hour(search_history(from_history, to_history, choose_ID)))
+        except:
+            pass
+    elif chart == 'Line chart':
+        st.line_chart(search_history(from_history, to_history, choose_ID).groupby('Date').sum()[['No_mask_count', 'Social_distancing_violations']])
+        try:
+            st.line_chart(groupby_hour(search_history(from_history, to_history, choose_ID)))
+        except:
+            pass

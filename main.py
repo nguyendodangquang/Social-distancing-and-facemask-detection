@@ -204,16 +204,19 @@ def run_detect_file():
         text = f"Social Distancing Violations: {len(close_objects)}"
         cv2.putText(result, text, (5, int(border_size-30)), style, 0.65, border_text_color, 2)
 
+        text = f"Camera ID: {device_name}"
+        cv2.putText(result, text, (frame_width - 250, int(border_size-70)), style, 0.65, border_text_color, 2)
+
         text = f"Status:"
-        cv2.putText(result, text, (frame_width - 250, int(border_size-50)), style, 0.65, border_text_color, 2)
+        cv2.putText(result, text, (frame_width - 250, int(border_size-30)), style, 0.65, border_text_color, 2)
         
         if (nomask_count == 0) and len(close_objects) == 0:
             text = "Safe"
-            cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 255, 0), 2)
+            cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 255, 0), 2)
             count_frame = 0
         elif nomask_count >=1:
             text = "Danger !!!"
-            cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
+            cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 0, 255), 2)
 
             count_frame+=1
             if count_frame >=7:
@@ -238,7 +241,7 @@ def run_detect_file():
         
         elif len(close_objects) >= 3:
             text = "Danger !!!"
-            cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0, 0, 255), 2)
+            cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 0, 255), 2)
 
             count_frame+=1
             if count_frame >=30:
@@ -262,7 +265,7 @@ def run_detect_file():
                     append_list_as_row(result_csv, save_list)
         else:
             text = "Warning !"
-            cv2.putText(result, text, (frame_width - 170, int(border_size-50)), style, 0.65, (0,255,255), 2)
+            cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0,255,255), 2)
             count_frame = 0
         cv2.namedWindow('Frame',cv2.WINDOW_NORMAL)
         # Show frame
