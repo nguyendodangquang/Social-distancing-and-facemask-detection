@@ -254,7 +254,7 @@ if page == 'Run Detection':
             elif len(close_objects) >=close:
                 text = "Danger !!!"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 0, 255), 2)
-
+                # Eliminate the chance that people just walk through each other really quick
                 count_frame+=1
                 if count_frame >=30:
                     # Capture image next image after few seconds:
