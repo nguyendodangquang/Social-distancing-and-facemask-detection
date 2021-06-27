@@ -8,6 +8,8 @@ With Social distancing and wearing a face mask, we can slow the spreading speed 
 ![g](https://github.com/nguyendodangquang/Social-distancing-and-facemask-detection/blob/master/README/1_gpUdUKqu85R6usaayEMn1w.gif)
 
 _By Katapult Magazin, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=88464207_
+
+
 <img src="https://user-images.githubusercontent.com/6376530/123532747-1a0bfb80-d73a-11eb-8ff8-9e2232b6ac0a.PNG" width=60% height=60%>
 
 ## My project pipeline
@@ -58,7 +60,22 @@ We already calculate distance d between 2 people and with position giving by yol
 <img src="https://user-images.githubusercontent.com/6376530/123533402-73c2f480-d73f-11eb-90b7-57054fdc00a7.PNG" width=50% height=50%>
 
 ## How to run
+### Run with python
+
+Use the following command to execute the code with real-time detect using camera:
 
 ```
+python main.py --confidence 0.5
+```
 
+run with video:
+
+```
+python main.py --confidence 0.5 --video <path_to_video>
+```
+
+Use email and sms to alert (need to change phone number (using Twilio), account and password of your email in sendMSG.py)
+
+```
+python main.py --confidence 0.5 --use_sms 1 --use_email 1
 ```
