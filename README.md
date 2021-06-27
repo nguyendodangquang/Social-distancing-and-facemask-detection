@@ -79,3 +79,7 @@ Use **email and sms to alert** (need to change phone number (using Twilio), acco
 ```
 python main.py --confidence 0.5 --use_sms 1 --use_email 1
 ```
+## Reference
+https://www.pyimagesearch.com/2020/06/01/opencv-social-distancing-detector/
+
+https://github.com/Subikshaa/Social-Distance-Detection-using-OpenCV
