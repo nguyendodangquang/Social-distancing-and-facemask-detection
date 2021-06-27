@@ -74,7 +74,7 @@ run with video:
 python main.py --confidence 0.5 --video <path_to_video>
 ```
 
-Use email and sms to alert (need to change phone number (using Twilio), account and password of your email in sendMSG.py)
+Use **email and sms to alert** (need to change phone number (using Twilio), account and password of your email in sendMSG.py)
 
 ```
 python main.py --confidence 0.5 --use_sms 1 --use_email 1
