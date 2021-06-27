@@ -60,15 +60,21 @@ We already calculate distance d between 2 people and with position giving by yol
 <img src="https://user-images.githubusercontent.com/6376530/123533402-73c2f480-d73f-11eb-90b7-57054fdc00a7.PNG" width=50% height=50%>
 
 ## How to run
+### Run with streamlit
+
+```
+streamlit run app.py
+```
+
 ### Run with python
 
-Use the following command to execute the code with real-time detect using camera:
+Real-time detect using camera:
 
 ```
 python main.py --confidence 0.5
 ```
 
-run with video:
+Run with video:
 
 ```
 python main.py --confidence 0.5 --video <path_to_video>
