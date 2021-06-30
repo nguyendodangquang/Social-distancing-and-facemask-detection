@@ -47,7 +47,7 @@ Calculate focal length **f = (r x d) / R**
 
 ### 2. Calculate distance between people to camera when detecting
 With f, we can calculate distance between objects and the camera:
-- R: real height of a person (I assumed average height of a person is 160cm)
+- R: real height of a person (I assumed average height of a person is 165cm)
 - r: height of bounding box the person (in pixel)
 - **d**:  **d = (r x f) / R**
 
@@ -57,7 +57,7 @@ With f, we can calculate distance between objects and the camera:
 
 We already calculate distance d between 2 people and with position giving by yolov4 when detect a person (middle point of the bounding box), we can calculate Euclidean distance by using this formula:
 
-<img src="https://user-images.githubusercontent.com/6376530/123533402-73c2f480-d73f-11eb-90b7-57054fdc00a7.PNG" width=50% height=50%>
+<img src="https://user-images.githubusercontent.com/6376530/123912882-c7d01200-d9a7-11eb-848b-47470e50f52f.png" width=50% height=50%>
 
 ## How to run
 ### Run with streamlit
