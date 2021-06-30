@@ -55,7 +55,7 @@ With f, we can calculate distance between objects and the camera:
 
 <img src="https://user-images.githubusercontent.com/6376530/123533401-6efe4080-d73f-11eb-8e63-fe89c0d75fc7.png" width=50% height=50%>
 
-We already calculate distance d between 2 people and with position giving by yolov4 when detect a person (middle point of the bounding box), we can calculate Euclidean distance by using this formula:
+We already calculate distance d between each person to camera and with position giving by yolov4 when detect a person (middle point of the bounding box), we can calculate Euclidean distance by using this formula:
 
 <img src="https://user-images.githubusercontent.com/6376530/123912882-c7d01200-d9a7-11eb-848b-47470e50f52f.png" width=50% height=50%>
 
