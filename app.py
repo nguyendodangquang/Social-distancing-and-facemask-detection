@@ -21,10 +21,6 @@ net_person = cv2.dnn.readNetFromDarknet(WEIGHT, MODEL)
 net_person.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 net_person.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
-# Labels (person)
-labels_list = './model/person_detect/coco.names'
-labels = [line.strip() for line in open(labels_list)]
-
 # Load model to detect Mask/Improperly/No mask
 modelConfiguration = "./model/mask_detect/yolov4_mask_2class.cfg"
 modelWeights = "./model/weights/yolov4_mask_2class_final.weights"
@@ -254,7 +250,7 @@ if page == 'Run Detection':
             elif len(close_objects) >=close:
                 text = "Danger !!!"
                 cv2.putText(result, text, (frame_width - 170, int(border_size-30)), style, 0.65, (0, 0, 255), 2)
-                # Eliminate the chance that people just walk through each other really quick
+                # Eliminate the chance that people just walk through each other really fast
                 count_frame+=1
                 if count_frame >=30:
                     # Capture image next image after few seconds:
