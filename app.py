@@ -15,27 +15,26 @@ device_name = 'C001'
 result_csv = './Capture/result.csv'
 
 # Load model to detect person
-WEIGHT = './model/person_detect/yolov4_tiny_person.cfg'
-MODEL = './model/person_detect/yolov4_tiny_person_best.weights'
-net_person = cv2.dnn.readNetFromDarknet(WEIGHT, MODEL)
+weight_person = './model/person_detect/yolov4_tiny_person.cfg'
+model_peron = './model/person_detect/yolov4_tiny_person_best.weights'
+net_person = cv2.dnn.readNetFromDarknet(weight_person, model_peron)
 net_person.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 net_person.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
-# Load model to detect Mask/Improperly/No mask
-modelConfiguration = "./model/mask_detect/yolov4_mask_2class.cfg"
-modelWeights = "./model/weights/yolov4_mask_2class_final.weights"
-
-net_face = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
+# Load model to detect Mask/No mask
+weight_face = "./model/mask_detect/yolov4_mask_2class.cfg"
+model_face = "./model/weights/yolov4_mask_2class_final.weights"
+net_face = cv2.dnn.readNetFromDarknet(weight_face, model_face)
 net_face.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
 net_face.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
-# Labels (Mask/improperly/No mask)
+# Labels (Mask/No mask)
 classesFile = "./model/mask_detect/object.names"
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
-# Set color for Mask/Improperly/No mask
-colors = [(0,0,255), (0,255,0)] #, (0,135,215)
+# Set color for Mask/No mask
+colors = [(0,0,255), (0,255,0)]
 
 # Image size
 IMG_WIDTH, IMG_HEIGHT = 416, 416
