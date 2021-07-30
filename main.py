@@ -62,7 +62,7 @@ if args['video']:
 else:
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-
+# Input model and frame to get boxes, class & confidence of objects
 def predict_box(net, frame):
     blob = cv2.dnn.blobFromImage(frame, 1/255, (IMG_WIDTH, IMG_HEIGHT), [0,0,0], 1, crop=False)
     net.setInput(blob)
@@ -98,7 +98,7 @@ def predict_box(net, frame):
             final_confidences.append(confidences[i])
         return final_box, final_classIDs, final_confidences
 
-
+# Draw bounding box and text
 def draw_box(frame, boxes, classIDs, confidences, class_list, color_list):
     for i in range(len(boxes)):
         (x, y) = (boxes[i][0], boxes[i][1])
@@ -108,7 +108,7 @@ def draw_box(frame, boxes, classIDs, confidences, class_list, color_list):
         text = '{}: {:.4f}'.format(class_list[classIDs[i]], confidences[i])
         cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
-
+# Calculate distance between each person, output 2 list of close people and not-close people
 def calculate_distance(frame, boxes):
     position = {}
     close_objects = set()
@@ -146,8 +146,10 @@ def calculate_distance(frame, boxes):
                         else:
                             y_center_line = int(position[j][4] + (position[i][4] - position[j][4])/2)
                         cv2.putText(frame, f'{int(distance)} cm', (x_center_line - 35, y_center_line - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 1)
+    
     boxes_person_normal = []
     boxes_close = []
+
     for i in range(len(boxes)):
         if i in close_objects:
             boxes_close.append(boxes[i])
@@ -157,24 +159,28 @@ def calculate_distance(frame, boxes):
 
 
 while cap.isOpened():
-    ret, frame = cap.read()
-    frame_height = frame.shape[0]
-    frame_width = frame.shape[1]
+    ret, frame      = cap.read()
+    frame_height    = frame.shape[0]
+    frame_width     = frame.shape[1]
     result = frame.copy()
 
     boxes_face          = []
     boxes_person        = []
     boxes_close         = []
     boxes_person_normal = []
+    mask_count          = []
+    nomask_count        = []
 
     try:
+        # get and draw bounding box of facemask/no-facemask
         boxes_face, classIDs_face, confidences_face = predict_box(net_face, result)
         draw_box(result, boxes_face, classIDs_face, confidences_face, classes, colors)
 
-        # print(classIDs_face)
-        mask_count = sum(classIDs_face)
-        nomask_count = len(classIDs_face) - mask_count
+        # count number of mask & no mask
+        mask_count      = sum(classIDs_face)
+        nomask_count    = len(classIDs_face) - mask_count
 
+        # get and draw bounding box of close people (red) & not close people (green)
         boxes_person, classIDs_person, confidences_person = predict_box(net_person, result)
         boxes_close, boxes_person_normal = calculate_distance(result, boxes_person)
 
@@ -184,7 +190,8 @@ while cap.isOpened():
     except:
         pass
 
-    border_size=100
+    # Create a canvas on top to display information
+    border_size = 100
     border_text_color=(255,255,255)
     style = cv2.FONT_HERSHEY_SIMPLEX
     result = cv2.copyMakeBorder(result, border_size, 0,0,0, cv2.BORDER_CONSTANT)
@@ -239,20 +246,21 @@ while cap.isOpened():
             # Capture image next image after few seconds:
             if time.time() - cur >= 20:
                 # Save image
-                datetime_ist = datetime.now(IST)
-                image_name = str(datetime_ist.strftime('%Y-%m-%d_%H-%M-%S')) + f'_{device_name}'
+                datetime_ist    = datetime.now(IST)
+                image_name      = str(datetime_ist.strftime('%Y-%m-%d_%H-%M-%S')) + f'_{device_name}'
                 cv2.imwrite(f'./Capture/{image_name}.jpg', frame)
                 # Write a message
-                msg = writeMsg(device_name, nomask_count, mask_count, boxes_close, datetime_ist)
+                msg             = writeMsg(device_name, nomask_count, mask_count, boxes_close, datetime_ist)
                 print(msg)
                 if args['use_sms']:
                     sendSMS(msg)
                 # Send email
                 if args['use_email']:
                     sendEmail(msg, f'./Capture/{image_name}.jpg')
-                cur = time.time()
-                count_frame=0
-                save_list = [device_name, datetime_ist.strftime('%Y-%m-%d'), datetime_ist.strftime('%H:%M:%S'), mask_count, nomask_count, len(boxes_close)]
+                    
+                cur         = time.time()
+                count_frame = 0
+                save_list   = [device_name, datetime_ist.strftime('%Y-%m-%d'), datetime_ist.strftime('%H:%M:%S'), mask_count, nomask_count, len(boxes_close)]
                 append_list_as_row(result_csv, save_list)
     else:
         text = 'Warning !'

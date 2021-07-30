@@ -33,8 +33,8 @@ classesFile = "./model/mask_detect/object.names"
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
-# Set color for Mask/No mask
-colors = [(0,0,255), (0,255,0)]
+# Set color for Mask/Improperly/No mask
+colors = [(0,0,255), (0,255,0)] #, (0,135,215)
 
 # Image size
 IMG_WIDTH, IMG_HEIGHT = 416, 416
